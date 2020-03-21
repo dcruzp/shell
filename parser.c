@@ -105,6 +105,8 @@ Command * Parse(char * text, char ** tokens)
     }
 
     cmd = initCommand(cmdCount, background, comment, _stdin, _stdout, NULL);
+
+    //agrega todos los subcomandos al comando que va a retornar la funcion parser
     MakeSubcmd(tokens, cmdCount, cmd, currentSubcmd);
 
     PrintCMD(cmd);
