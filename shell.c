@@ -5,32 +5,21 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/wait.h>
+#include "shell_structures.h"
+#include "parser.h"
 #define max_args 13
 #define maxln_Com_Amb 105
 
 char comando[maxln_Com_Amb];
 char *args[max_args];
-int cantarg = 0;
+int cantcmd = 0;
 
 char SHELL[maxln_Com_Amb];
 char PATH[maxln_Com_Amb];
 char HOME[maxln_Com_Amb];
 char PWD[maxln_Com_Amb];
 
-char *historial [55] ; 
-char * directorio;
-int h_head , h_tail;  
-
-
-typedef struct command
-{
-	char **args; 
-	char **redir; 
-}cmd;
-
-
 void separaArgs(void);
-//void load_history(void); 
 
 /*estas son las funciones a ejecutar */
 void execute_cd(void);
@@ -44,9 +33,6 @@ void execute_clear(void);
 void listaDir(void);
 void eco(void);
 void comExterno(void);
-void Print(cmd ** c); 
-void loadhistory(void) ;
-
 
 /*estas son los flags del programa */
 int continuar = 1;
@@ -62,8 +48,6 @@ int main(int argc, char const *argv[])
 	strcpy(HOME, PWD);
 	strcpy(SHELL, PWD);
 
-	//loadhistory();
-
 	do
 	{
 		// Print beggining of shell
@@ -75,7 +59,7 @@ int main(int argc, char const *argv[])
 		scanf("%[^\n]s", comando);
 
 		// React to input
-		if (strlen(comando) > 0)
+		/*if (strlen(comando) > 0)
 		{
 			separaArgs();
 
@@ -93,8 +77,11 @@ int main(int argc, char const *argv[])
 				execute_clear();
 			else
 				printf("%s\n", "No se reconoce como un comando interno ");
-			
-		}
+		}*/
+		  
+		Command * cmd = Parse(comando);
+		PrintCMD(cmd);
+
 	} while (continuar);
 
 	return 0;
@@ -109,8 +96,9 @@ void separaArgs(void)
 	args[i] = strtok(comando, " ");
 	if(!args[i])return;
 	
-	while ((args[++i] = strtok(NULL, " ")) != NULL && i < (max_args - 1));
-	cantarg = i;
+	while ((args[++i] = strtok(NULL, " ")) != NULL && i < (max_args - 1))
+		;
+	cantcmd = i;
 }
 
 void execute_cd(void)
@@ -125,13 +113,13 @@ void execute_cd(void)
 void execute_exit(void)
 {
 	continuar = 0;
-	//savehistorial();
 }
 
 void execute_dir_or_ls(void)
 {
 	char ruta[maxln_Com_Amb];
-	int archs, cnt = -1;;
+	int archs;
+	int cnt = -1;
 	struct dirent **lista;
 	strcpy(ruta, PWD);
 	if (args[1])
@@ -147,12 +135,8 @@ void execute_dir_or_ls(void)
 	{
 		while (++cnt < archs)
 		{
-			if (strncmp(lista[cnt]->d_name, "." ,1)!=0)
+			if (strcmp(lista[cnt]->d_name, ".") != 0 && strcmp(lista[cnt]->d_name, "..") != 0)
 				printf("%s\n", lista[cnt]->d_name);
-			/*if (strcmp(lista[cnt]->d_name, ".") != 0 && strcmp(lista[cnt]->d_name, "..") != 0)
-				printf("%s\n", lista[cnt]->d_name);*/
-			if (args[1] !=NULL)printf("%s\n" , args[1]);
-
 		}
 	}
 }
@@ -164,6 +148,35 @@ void execute_pwd(void)
 
 void execute_echo(void)
 {
+
+	/*
+	int  i =0 , maxsize = 64 ;
+    char c, * buf ;
+
+	//esto es para hacerle echo a todo lo que se pone en la entrada estandar
+    if (argc == 1 ) {
+
+        for(;;) {
+            buf = calloc(maxsize, sizeof(char));
+            while (read(STDIN_FILENO,&c,1)>0&&c!='\n'){
+                buf[i++] = c ;
+                if (i==maxsize-1){
+                    maxsize*=2;
+                    if (!(buf=realloc(buf,maxsize))){
+                        printf("Error while allocating memory\n");
+                        exit(1);
+                    }
+                }
+            }
+            buf[i] = '\0';
+            maxsize=64 ;
+            i=0;
+            printf("%s\n",buf);
+            free(buf);
+        }
+    }
+    */
+
 	if (!args[1])
 		return;
 	int i, j, k = 0;
@@ -217,71 +230,4 @@ void execute_clear(void)
 	{
 		wait(NULL);
 	}
-}
-
-void loadhistory(void){
-	int i =0 ; 
-	char * in =NULL; 
-	historial [i] = NULL ; 
-	historial [i] = (char*) malloc(sizeof(char)*1024) ; 
-	FILE *f , *f1 ; 
-	f = fopen(".history" , "r");
-	f1= fopen(".ptr_HISTORY", "r"); 
-	fscanf(f1,"%d %d" , &h_head , &h_tail) ; 
-	int read , len , n_ptr = h_head; 
-	while ((read = getline(&historial[n_ptr],&len , f))!=-1)
-	{
-		if (n_ptr == h_tail) break ; 
-		if (read <=1 )break ; 
-		n_ptr = (n_ptr+1)%50; 
-	}
-	
-}
-
-void savehistorial (void ){
-	FILE *f , *f1 ; 
-	char *aux1 = NULL ;
-	aux1 = (char*) malloc (sizeof(char)*1024) ; 
-	strcpy(aux1, directorio) ; 
-	strcat(aux1 , "/.ptr_HISTORY"); 
-
-	f1 = fopen(aux1, "w"); 
-
-	fprintf(f1,"%d %d" , h_head , h_tail) ; 
-
-	aux1 = NULL ; 
-	aux1 = (char*) malloc (sizeof(char)*1024); 
-
-	strcpy(aux1, directorio);
-	strcat(aux1, "/.history");
-
-	f= fopen(aux1 , "w"); 
-
-	if (f == NULL) {
-		printf("%s\n", "Missing file error. '.history' does not exist"); 
-	}
-	int i , j, k , p = 0 , first =1 , n_ptr = h_head ; 
-	for (i=h_head;; i= (i+1)%50){
-		fprintf(f,"%s", historial[i]);
-		if (i==h_tail) break; 
-	}
-}
-
-void historial_Add (cmd **c ){
-
-}
-
-void Print (cmd ** c ){
-	int i , j ; 
-	for (i = 0; c[i] != NULL; i++)
-	{
-		for (j=0 ; c[i] ->args[j] !=NULL; j++)
-			printf("%s" ,c[i] ->args[j]) ;
-
-		for (j=0 ; c[i]->redir[j] !=NULL ; j++)
-			printf ("%s" , c[i] ->redir[j]) ;
-		printf("\n"); 	
-	}
-	printf("print end");
-	
 }
