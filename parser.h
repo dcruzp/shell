@@ -3,7 +3,7 @@
 
 #include "shell_structures.h"
 
-Command * Parse(char * text, char ** tokens);
+Command * Parse(char * text);
 
 //busca si existe algun signo
 //ampersand en el comando

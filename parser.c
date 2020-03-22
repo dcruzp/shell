@@ -9,9 +9,10 @@
 #include <string.h>
 
 
-Command * Parse(char * text, char ** tokens)
+Command * Parse(char * text)
 {
 
+    char* tokens[1024];
     Command * cmd;
     subCommand * currentSubcmd;
     int cmdCount = 0;
@@ -109,8 +110,6 @@ Command * Parse(char * text, char ** tokens)
     //agrega todos los subcomandos al comando que va a retornar la funcion parser
     MakeSubcmd(tokens, cmdCount, cmd, currentSubcmd);
 
-    PrintCMD(cmd);
-
     return cmd;
 }
 
@@ -142,7 +141,7 @@ void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * curren
     int j = 0;
     for (int i = 0; i < cmdCount; i++)
     {
-        char * _cmd, *args, *token;
+        char * _cmd, *args = NULL, *token;
         for (j = 0, str1 = tokens[i]; ;j++, str1 = NULL)
         {
             token = strtok(str1, delimiter);
@@ -151,6 +150,7 @@ void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * curren
             if(j == 0)
             {
                  _cmd = token;
+                 token = NULL;
                  continue;
             }
 
