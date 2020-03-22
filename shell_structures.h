@@ -59,7 +59,7 @@ Command * initCommand(int subCmdCount, int background, char * comment, char * _s
  * usar despues de trabajar con un Command* declardo
  * o devuelto por alguna función.
  */
-void CommandDestructor(Command * cmd, char * arguments);
+void CommandDestructor(Command * cmd);
 
 //inicializa un subcomand.
 subCommand * initSubCommand(char * cmd, char * Arguments);

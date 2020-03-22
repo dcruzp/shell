@@ -12,12 +12,10 @@ Command * initCommand(int subCmdCount, int background, char * comment, char * _s
     cmd->_stdout = _stdout;
     cmd->_stderr = _stderr;
     cmd->commands = (subCommand*)malloc(sizeof(subCommand) * subCmdCount);
-    printf("count: %d\n", subCmdCount);
-    printf("cmd->subc: %d\n", cmd->subCommandCount);
     return cmd;
 }
 
-void CommandDestructor(Command * cmd, char * arguments)
+void CommandDestructor(Command * cmd)
 {
     free(cmd->commands);
     free(cmd);
@@ -58,6 +56,10 @@ void PrintCMD(Command * cmd)
         subCommand aux = cmd->commands[i];
         char * _cmd = aux.cmd;
         char * args = aux.arguments;
+        if( args == NULL)
+        {
+            args = "NULL";
+        }
         printf("\nComand #%d:\n-cmd: %s\n-args: %s\n", i, _cmd, args);
     }
     
