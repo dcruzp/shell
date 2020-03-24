@@ -9,9 +9,11 @@
 #include <string.h>
 
 
+
+
 Command * Parse(char * text)
 {
-
+    text = removeOverSpace(text);
     char* tokens[1024];
     Command * cmd;
     subCommand * currentSubcmd;
@@ -28,6 +30,7 @@ Command * Parse(char * text)
     char * commentDelimiter = "#";
     char * inDelimiter = "<";
     char * outDelimiter = ">";
+    char * outApendDelimiter = ">>";
     char * ampersandDelimiter = "&";
 
     //buscar comentarios al final del comando
@@ -167,4 +170,41 @@ void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * curren
     
 }
 
+char * removeOverSpace(char * line)
+{
+    int len = strlen(line);
+    if(len == 0)
+    {
+        return "";
+    }
+    int wasSpace = 0;
+    char * aux = malloc(len);
+    int i;
+    int j = 0;
+    for(i = 0; i < len ; i++)
+    {
+        if(line[i] == ' ')
+        {
+            if(wasSpace)
+            {
+                continue;
+            }
+            else
+            {
+                wasSpace = 1;
+            }
+        }
+        else
+        {
+            wasSpace = 0;
+        }
 
+        aux[j] = line[i];
+        j++;
+    }
+    aux[j] = '\0';
+
+    line = aux;
+
+    return aux;
+}

@@ -13,5 +13,6 @@ int Background(char * text);
 //a el comando a ejecutar
 void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * currentSubcmd);
 
+char * removeOverSpace(char * line);
 
 #endif
