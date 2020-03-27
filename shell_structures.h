@@ -44,8 +44,6 @@ typedef struct subCommand{
  * caso de redireccionamiento.
 */
 typedef struct Command{
-    //para saber donde insertar un subcomando
-    int currentSubcmd;
     //cantidad de subcomandos
     int subCommandCount;
     //booleano para saber si hay procesos en el background
@@ -60,7 +58,7 @@ typedef struct Command{
 
 
 //inicializar la estructura Command.
-Command * initCommand(int subCmdCount, int background, char * comment);
+Command * initCommand(char * comment);
 
 /**
  * Destructor para el tipo Command

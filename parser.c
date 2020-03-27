@@ -7,113 +7,204 @@
 #include "shell_structures.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+#define SPACE 0
+#define QUOTES 1
+#define ARG 2
+#define OUTREDIR 3
+#define INREDIR 4
+#define AMPERSAND 5
+#define APPEND 6
+#define PIPE 7
+#define COMMENT 8
+#define CMD 9
+#define FILL 10
 
 
 
-
-Command * Parse(char * text)
+void Parse(char * text, Command * outcmd[])
 {
+    text = removeSpaceAtBegining(text);
+    text = removeSpaceAtEnd(text);
     text = removeOverSpace(text);
-    char* tokens[1024];
-    Command * cmd;
+
+    int len = strlen(text);
+
+    printf("%s\n", text);
+
+    int * tokenizer = token_map(text);
+
+    for (int i = 0; i < len; i++)
+    {
+        printf("%d", tokenizer[i]);
+    }
+    printf("\n");
+
+
+
+    int subcmdCount = 1;
+    int cmdCount = 1;
+    int background = 0;
+    char *comment;
+    int * tokenCounter = (int*)calloc(len, sizeof(int));
+
+    //procesa el tokenCounter para saber cuantos caracteres seguidos tiene cada token,
+    //busca los ampersand para dividir la linea en comandos
+    //y pipes para divirla en subcomandos.
+    //también guarda comenatrios en case de haber alguno.
+    for (int i = 0; i < len; i++)
+    {
+        int counter = 0;
+        int j = i;
+        switch (tokenizer[i])
+        {
+        case PIPE:
+            { 
+                subcmdCount++;
+            }
+            break;
+        case AMPERSAND:
+            {
+                background++; 
+                cmdCount++;
+            }
+            break;
+        case COMMENT:
+            {
+                comment = malloc(len - i);
+                while (++i < len)
+                {
+                    ConcatChar(comment, tokenizer[i]);
+                }
+            }
+            break;
+        case SPACE:
+            break;
+        
+        default:
+        {
+            int token = tokenizer[i];
+            if (tokenizer[i] == APPEND)
+            {
+                i += 2;
+            }            
+            while (j < len && tokenizer[i] == token)
+            {
+                tokenCounter[i]++;
+                j++;
+            }
+            i = j - 1;
+        }
+        break;
+
+        }
+        
+    }
+    
+    
+    Command * cmd[cmdCount];
+    int currentCmdCount = 0;
+    Command * currentCmd;
     subCommand * currentSubcmd;
-    int cmdCount = 0;
-    int background = 0;    
-    char * _stdin, *_stdout, *_stderr, *comment;
-    
-
-    char * str1, *token;
-    int j = 0;
     int i = 0;
-
-    char * pipeDelimiter = "|";
-    char * commentDelimiter = "#";
-    char * inDelimiter = "<";
-    char * outDelimiter = ">";
-    char * outApendDelimiter = ">>";
-    char * ampersandDelimiter = "&";
-
-    //buscar comentarios al final del comando
-    for (str1 = text; j < 2; j++, str1 = NULL)
+    for (i = 0, currentCmd = initCommand(comment); i < len; i++)
     {
-        token = strtok(str1, commentDelimiter);
-        if(token == NULL){ break;}
-        if(j = 0)
+        
+        printf("I AM MR. MESEEKS LOK AT ME\n");
+        currentSubcmd = initSubCommand("");
+
+
+        while (i < len && tokenizer[i] != PIPE && tokenizer[i] != AMPERSAND)
         {
-            text = token;
-            continue;
+
+            printf("I'm mr. Meseeks, look at me\n%d\t%c\n",i, text[i] );
+            switch (tokenizer[i])
+                {
+                case CMD:
+                {
+                    char* strCmd = malloc(tokenCounter[i]);
+                    while (i < len && tokenizer[i] == CMD)
+                    {
+                        ConcatChar(strCmd, tokenizer[i]);
+                        i++;
+                    }
+                    currentSubcmd->cmd = strCmd;
+                }
+                    break;
+                case ARG:
+                {
+                    char * arg = malloc(tokenCounter[i]);
+                    while (i < len && tokenizer[i] == ARG)
+                    {
+                        ConcatChar(arg, text[i]);
+                        i++;
+                    }
+                    insertArg(currentSubcmd, arg);
+                }
+                break;
+                
+                case INREDIR:
+                {
+                    i++;
+                    char * inR = malloc(tokenCounter[i]);
+                    while (i < len && tokenizer[i] == INREDIR)
+                    {
+                        ConcatChar(inR, text[i]);
+                        i++;
+                    }
+                    insertInRedir(currentSubcmd, inR);
+                }
+                break;
+
+                case OUTREDIR:
+                {
+                    i++;
+                    char * outR = malloc(tokenCounter[i]);
+                    while (i < len && tokenizer[i] == OUTREDIR)
+                    {
+                        ConcatChar(outR, text[i]);
+                        i++;
+                    }
+                    insertOutRedir(currentSubcmd, outR);
+                }
+                break;
+
+                case APPEND:
+                {
+                    i+=2;
+                    char * appR = malloc(tokenCounter[i]);
+                    while (i < len && tokenizer[i] == APPEND)
+                    {
+                        ConcatChar(appR, text[i]);
+                        i++;
+                    }
+                    insertAppendRedir(currentSubcmd, appR);
+                }
+                
+                default:
+                    i++;
+                    break;
+                }
+            
         }
-        comment = token;
-    }
-    //separar la entrada por pipes
-    for(str1 = text; ; cmdCount++, str1 = NULL)
-    {
-        token = strtok(str1, pipeDelimiter);
-
-        if(token == NULL){ break;}
-
-        tokens[cmdCount] = token;
-    }
-
-    //no habian comandos para ejecutar
-    if(cmdCount == 0)
-    {
-        perror("No comand to execute");
-    }
-
-
-    //Buscar si hay redirección de salida
-    //que debe acompañar al último comando
-    for (str1 = tokens[cmdCount - 1], i = 0; ;i++, str1 = NULL)
-    {
-        token = strtok(str1, outDelimiter);
-        if(token == NULL){ break;}
-
-        if(i == 1)
+        
+        insertSubcommand(currentCmd, currentSubcmd);
+        if(i < len && tokenizer[i] == AMPERSAND)
         {
-            _stdout = token;
-            break;
+            currentCmd->_background = 1;
+            cmd[currentCmdCount] = currentCmd;
+            currentCmdCount++;
+            currentCmd = initCommand(comment);
         }
-        if(i == 0){ tokens[cmdCount - 1] = token;}
-    }
-    
-    //Buscar si hay redirección de entrada
-    //que debe acompañar al primer comando
-    for (i = 0, str1 = tokens[0]; ;i++, str1 = NULL)
-    {
-        token = strtok(str1, inDelimiter);
-        if(token == NULL){ break;}
-
-        if(i == 1)
-        {
-            _stdin = token;
-            break;
-        }
-        if (i == 0){ tokens[0] = token;}
-
+        
     }
 
-    //buscar ampersand para saber si el comando debe correr en
-    //el background
-    background = Background(tokens[cmdCount - 1]);
-    if(background)
-    {
-        for (i = 0, str1 = tokens[cmdCount - 1]; ;i++, str1 = NULL )
-        {
-            token = strtok(str1, ampersandDelimiter);
 
-            if(token == NULL){ break;}
+    currentCmdCount++;
+    cmd[currentCmdCount] = NULL;
 
-            if(i == 0){ tokens[cmdCount - 1] = token;}
-        }
-    }
-
-    cmd = initCommand(cmdCount, background, comment, _stdin, _stdout, NULL);
-
-    //agrega todos los subcomandos al comando que va a retornar la funcion parser
-    MakeSubcmd(tokens, cmdCount, cmd, currentSubcmd);
-
-    return cmd;
+    outcmd =  cmd;
 }
 
 
@@ -136,7 +227,7 @@ int Background(char * text)
 
 //converitr los tokens en subcomandos y agregarlos
 //a el comando a ejecutar
-void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * currentSubcmd)
+/*void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * currentSubcmd)
 {
 
     char * str1;
@@ -168,7 +259,7 @@ void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * curren
         SubCommandestructor(currentSubcmd);
     }
     
-}
+}*/
 
 char * removeOverSpace(char * line)
 {
@@ -181,10 +272,12 @@ char * removeOverSpace(char * line)
     char * aux = malloc(len);
     int i;
     int j = 0;
+    char lastChar = '[';
     for(i = 0; i < len ; i++)
     {
         if(line[i] == ' ')
         {
+            if(IsOperator(lastChar)){ continue;}
             if(wasSpace)
             {
                 continue;
@@ -196,6 +289,7 @@ char * removeOverSpace(char * line)
         }
         else
         {
+            lastChar = line[i];
             wasSpace = 0;
         }
 
@@ -207,4 +301,172 @@ char * removeOverSpace(char * line)
     line = aux;
 
     return aux;
+}
+
+char * removeSpaceAtBegining(char * line)
+{
+    int len = strlen(line);
+    char * aux = malloc(len);
+    int j = 0;
+    int i = 0;
+    while (i < len && line[i] == ' ')
+    {
+        i++;
+    }
+    for (; i < len; i++, j++)
+    {
+        aux[j] = line[i];
+    }
+    
+    return aux;
+    
+}
+
+char * removeSpaceAtEnd(char * line)
+{
+    int len = strlen(line);
+    char * aux = malloc(len);
+    int j = 0;
+    int i = len - 1;
+    while (i > 0 && line[i] == ' ')
+    {
+        i--;
+    }
+    for (j = i; i >= 0 ; i--, j--)
+    {
+        aux[j] = line[i];
+    }
+
+    return aux;
+    
+}
+
+
+int * token_map(char * text)
+{
+    int len = len;
+    int cmd = 1;
+    int * tokenizer = (int*)malloc(sizeof(int) * len);
+    for (int i = 0; i < len; i++)
+    {
+        if(cmd){tokenizer[i] = CMD; cmd = 0; continue; };
+        char cmp = text[i];
+        if(cmp == ' '){ tokenizer[i] = SPACE; }
+        else if(cmp == '|'){ tokenizer[i] = PIPE; cmd = 1; }
+        else if(cmp == '&'){ tokenizer[i] = AMPERSAND; cmd = 1;}
+        else if(cmp == '<'){ tokenizer[i] = INREDIR;cmd = 0;}
+        else if(cmp == '>'){ tokenizer[i] = OUTREDIR; cmd = 0;}
+        else if(cmp == '#'){ tokenizer[i] = COMMENT; cmd = 0;}
+        else if(cmp == '\''){ tokenizer[i] = QUOTES; }
+        else { tokenizer[i] = FILL; cmd = 0;}
+    }
+    
+    for (int i = 0; i < len; i++)
+    {
+        switch (tokenizer[i])
+        {
+            case QUOTES:
+            {
+                i++;
+                while (i < len && tokenizer[i] != QUOTES)
+                {
+                    tokenizer[i] = QUOTES;
+                    i++;
+                }
+                
+            }
+                break;
+            
+            case OUTREDIR:
+            {
+                int redir = OUTREDIR;
+                if(i < len - 1 && tokenizer[i+1] == OUTREDIR)
+                {
+                    tokenizer[i] = APPEND;
+                    i++;
+                    tokenizer[i] = APPEND;
+                    redir = APPEND;
+                }
+
+                i++;
+                while (i < len && (tokenizer[i] == FILL || tokenizer[i] == SPACE))
+                {
+                    if(tokenizer[i] == SPACE)
+                    {
+                        i++;
+                        continue;
+                    }
+                    tokenizer[i] = redir;
+                    i++;
+                }
+
+                i--;
+            }
+                break;
+
+            case INREDIR:
+            {
+                i++;
+                while (i < len && (tokenizer[i] == SPACE || tokenizer[i] == FILL))
+                {
+                    if(tokenizer[i] == SPACE){ i++; continue;}
+                    tokenizer[i] = INREDIR;
+                }
+                i--;            
+            }
+                break;
+
+            case CMD:
+            {
+                i++;
+                while (i < len && tokenizer[i] == FILL)
+                {
+                    tokenizer[i] = CMD;
+                    i++;
+                }
+
+                i--;
+            }
+                break;
+
+            case COMMENT:
+            {
+                i++;
+                while (i < len)
+                {
+                    tokenizer[i] = COMMENT;
+                    i++;
+                }
+            }
+                break;
+
+            case FILL:
+            {
+                while (tokenizer[i] == FILL)
+                {
+                    tokenizer[i] = ARG;
+                    i++;
+                }
+                i--;
+            }
+                break;
+            default:
+                break;
+        }
+        
+    }
+    
+    return tokenizer;
+}
+
+int IsOperator(char character)
+{
+    return (character == '<' || character == '>' || character == '&' || character == '|');
+}
+
+void ConcatChar(char * str1, char _char)
+{
+    char aux[] = " \0";
+    aux[0] = _char;
+    strcat(str1, aux);
 }

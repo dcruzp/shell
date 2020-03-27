@@ -1,14 +1,13 @@
 #include "shell_structures.h"
 
 
-Command * initCommand(int subCmdCount, int background, char * comment)
+Command * initCommand(char * comment)
 {
     Command * cmd = (Command*)malloc(sizeof(Command));
-    cmd->currentSubcmd = 0;
-    cmd->subCommandCount = subCmdCount;
-    cmd->_background = background;
+    cmd->subCommandCount = 0;
+    cmd->_background = 0;
     cmd->comment = comment;
-    cmd->commands = (subCommand*)malloc(sizeof(subCommand) * subCmdCount);
+    cmd->commands = (subCommand*)malloc(sizeof(subCommand));
     return cmd;
 }
 
@@ -37,13 +36,10 @@ void SubCommandestructor(subCommand * subcmd)
 
 void insertSubcommand(Command * cmd, subCommand * subcmd)
 {
-    if(cmd->subCommandCount == cmd->currentSubcmd)
-    {
-        printf("WARNING: Commands are full.\n");
-    }
-    int index = cmd->currentSubcmd;
+    int index = cmd->subCommandCount;
+    cmd->commands = realloc(cmd->commands, index+1);
     cmd->commands[index] = *subcmd;
-    cmd->currentSubcmd++;
+    cmd->subCommandCount++;
 }
 
 void PrintCMD(Command * cmd)
@@ -52,17 +48,18 @@ void PrintCMD(Command * cmd)
         printf("No hay comandos para ejeutar");
     }
     int count = cmd->subCommandCount;
-    printf("Ampersand: %d\nin: %s\nout: %s\n", cmd->_background, cmd->_stdin, cmd->_stdout);
+
     for (int i = 0; i < count; i++)
     {
         subCommand aux = cmd->commands[i];
         char * _cmd = aux.cmd;
-        char * args = aux.arguments;
+        /*char * args = aux.args;
         if( args == NULL)
         {
             args = "NULL";
         }
         printf("\nComand #%d:\n-cmd: %s\n-args: %s\n", i, _cmd, args);
+        */
     }
     
 }
