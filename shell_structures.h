@@ -12,12 +12,27 @@
 typedef struct subCommand{
 
     //número de argumentos
-    int argumentsCount;
+    int argsC;
+
+    //Cantidad de redirecciones de salida
+    int outRcount;
+
+    //Cantidad de redirecciones de entrada
+    int inRcount;
+
+    //cantidad de redirecciones de append
+    int appRcount;
 
     //instruccion
     char * cmd;
     //array de argumentos
-    char * arguments;
+    char * args[64];
+    //redirecciones de salida
+    char * outR[64];
+    //redirecciones de entrada
+    char * inR[64];
+    //redireciones de salida con append
+    char * appR[64];
 
 }subCommand;
 
@@ -35,24 +50,17 @@ typedef struct Command{
     int subCommandCount;
     //booleano para saber si hay procesos en el background
     int _background;
-    //fichero de entrada estandar
-    char * _stdin;
-    //fichero de salida estandar
-    char * _stdout;
-    //fichero de salida estandar de errores
-    char * _stderr;
     //Comentarios si hay alguno
     char * comment;
 
     //array de subcomandos
     subCommand * commands;
 
-
 }Command;
 
 
 //inicializar la estructura Command.
-Command * initCommand(int subCmdCount, int background, char * comment, char * _stdin, char * _stdout, char * _stderr);
+Command * initCommand(int subCmdCount, int background, char * comment);
 
 /**
  * Destructor para el tipo Command
@@ -62,7 +70,7 @@ Command * initCommand(int subCmdCount, int background, char * comment, char * _s
 void CommandDestructor(Command * cmd);
 
 //inicializa un subcomand.
-subCommand * initSubCommand(char * cmd, char * Arguments);
+subCommand * initSubCommand(char * cmd);
 
 /**
  * Destructor para el tipo subCommand
@@ -86,5 +94,17 @@ void insertSubcommand(Command * cmd, subCommand * subcmd);
  * Command*
 */
 void PrintCMD(Command * cmd);
+
+//Agregar argumentos a un subcomando
+void insertArg(subCommand * scmd, char * arg);
+
+//Agregar el path de un redirecionamiento de entrada a un subcomando
+void insertInRedir(subCommand * scmd ,char * inputRedir);
+
+//Agregar el path de un redirecionamiento de salida a un subcomando
+void insertOutRedir(subCommand * scmd ,char * outputRedir);
+
+//Agregar el path de un redirecionamiento de entrada tipo append a un subcomando
+void insertAppendRedir(subCommand * scmd ,char * appendRedir);
 
 #endif
