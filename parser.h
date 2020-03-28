@@ -10,9 +10,7 @@ int Parse(char * text, Command * cmd[]);
 //ampersand en el comando
 int Background(char * text);
 
-//converitr los tokens en subcomandos y agregarlos
-//a el comando a ejecutar
-//void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * currentSubcmd);
+
 
 //quita los espacios de más en line,
 //si hay más de un espacio deja solo uno.

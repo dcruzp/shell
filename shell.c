@@ -78,9 +78,9 @@ int main(int argc, char const *argv[])
 			else
 				printf("%s\n", "No se reconoce como un comando interno ");
 		}*/
-		  
-		Command * cmd = Parse(comando);
-		PrintCMD(cmd);
+		Command * cmd[128];
+		int cantCommands = Parse(comando, cmd);
+		PrintCMD(cmd[0]);
 
 	} while (continuar);
 
