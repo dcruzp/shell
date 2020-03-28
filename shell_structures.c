@@ -37,7 +37,8 @@ void SubCommandestructor(subCommand * subcmd)
 void insertSubcommand(Command * cmd, subCommand * subcmd)
 {
     int index = cmd->subCommandCount;
-    cmd->commands = realloc(cmd->commands, index+1);
+    subCommand * aux = (subCommand*)realloc(cmd->commands, sizeof(subCommand) * (index+1));
+    cmd->commands = aux;
     cmd->commands[index] = *subcmd;
     cmd->subCommandCount++;
 }
@@ -48,18 +49,19 @@ void PrintCMD(Command * cmd)
         printf("No hay comandos para ejeutar");
     }
     int count = cmd->subCommandCount;
-
+    
     for (int i = 0; i < count; i++)
     {
         subCommand aux = cmd->commands[i];
         char * _cmd = aux.cmd;
-        /*char * args = aux.args;
-        if( args == NULL)
+        printf("\nComand #%d:\n-cmd: %s\n", i, _cmd);
+        printf("Argumentos:\n");
+        if(aux.argsC == 0){ printf("NULL\n");}
+        for (int j = 0; j < aux.argsC; j++)
         {
-            args = "NULL";
+            char * arg = aux.args[j];
+            printf("Arg #%d: %s\n", j, arg);
         }
-        printf("\nComand #%d:\n-cmd: %s\n-args: %s\n", i, _cmd, args);
-        */
     }
     
 }
