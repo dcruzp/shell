@@ -124,6 +124,7 @@ int Parse(char * text, Command * outcmd[])
                         i++;
                     }
                     currentSubcmd->cmd = strCmd;
+                    insertArg(currentSubcmd, strCmd);
                 }
                     break;
                 case ARG:
@@ -219,42 +220,6 @@ int Background(char * text)
     return 0;
 }
 
-
-//converitr los tokens en subcomandos y agregarlos
-//a el comando a ejecutar
-/*void MakeSubcmd(char ** tokens, int cmdCount, Command * cmd, subCommand * currentSubcmd)
-{
-
-    char * str1;
-    char * delimiter = " ";
-    int j = 0;
-    for (int i = 0; i < cmdCount; i++)
-    {
-        char * _cmd, *args = NULL, *token;
-        for (j = 0, str1 = tokens[i]; ;j++, str1 = NULL)
-        {
-            token = strtok(str1, delimiter);
-            if(token == NULL){ break;}
-
-            if(j == 0)
-            {
-                 _cmd = token;
-                 token = NULL;
-                 continue;
-            }
-
-            if(j == 1){ args = token;}
-            
-        }
-
-        
-        currentSubcmd = initSubCommand( _cmd, args);
-        insertSubcommand(cmd, currentSubcmd);
-        
-        SubCommandestructor(currentSubcmd);
-    }
-    
-}*/
 
 char * removeOverSpace(char * line)
 {
@@ -464,5 +429,4 @@ void ConcatChar(char * str1, char _char)
     char aux[] = " \0";
     aux[0] = _char;
     strcat(str1, aux);
-    printf("DEntro  de concat str1: %s char: %c\n", str1, _char);
 }
