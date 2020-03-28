@@ -23,7 +23,7 @@
 
 
 
-void Parse(char * text, Command * outcmd[])
+int Parse(char * text, Command * outcmd[])
 {
     text = removeSpaceAtBegining(text);
     text = removeSpaceAtEnd(text);
@@ -103,22 +103,16 @@ void Parse(char * text, Command * outcmd[])
     }
     
     
-    Command * cmd[cmdCount];
     int currentCmdCount = 0;
     Command * currentCmd;
     subCommand * currentSubcmd;
     int i = 0;
     for (i = 0, currentCmd = initCommand(comment); i < len; i++)
     {
-        
-        printf("I AM MR. MESEEKS LOK AT ME\n");
         currentSubcmd = initSubCommand("");
-
 
         while (i < len && tokenizer[i] != PIPE && tokenizer[i] != AMPERSAND)
         {
-
-            printf("I'm mr. Meseeks, look at me\n%d\t%c\n",i, text[i] );
             switch (tokenizer[i])
                 {
                 case CMD:
@@ -190,21 +184,21 @@ void Parse(char * text, Command * outcmd[])
         }
         
         insertSubcommand(currentCmd, currentSubcmd);
+
         if(i < len && tokenizer[i] == AMPERSAND)
         {
             currentCmd->_background = 1;
-            cmd[currentCmdCount] = currentCmd;
+            outcmd[currentCmdCount] = currentCmd;
             currentCmdCount++;
             currentCmd = initCommand(comment);
         }
         
     }
-
-
+    outcmd[currentCmdCount] = currentCmd;
     currentCmdCount++;
-    cmd[currentCmdCount] = NULL;
+    outcmd[currentCmdCount] = NULL;
 
-    outcmd =  cmd;
+    return currentCmdCount;
 }
 
 

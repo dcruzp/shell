@@ -4,7 +4,7 @@
 #include "shell_structures.h"
 
 //formatea la linea text para que sea más facil de procesar
-void Parse(char * text, Command * cmd[]);
+int Parse(char * text, Command * cmd[]);
 
 //busca si existe algun signo
 //ampersand en el comando
