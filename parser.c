@@ -75,7 +75,7 @@ int Parse(char * text, Command * outcmd[])
                 comment = malloc(len - i);
                 while (++i < len)
                 {
-                    ConcatChar(comment, tokenizer[i]);
+                    ConcatChar(comment, text[i]);
                 }
             }
             break;
@@ -89,7 +89,7 @@ int Parse(char * text, Command * outcmd[])
             {
                 i += 2;
             }            
-            while (j < len && tokenizer[i] == token)
+            while (j < len && tokenizer[j] == token)
             {
                 tokenCounter[i]++;
                 j++;
@@ -117,10 +117,10 @@ int Parse(char * text, Command * outcmd[])
                 {
                 case CMD:
                 {
-                    char* strCmd = malloc(tokenCounter[i]);
+                    char* strCmd = calloc(tokenCounter[i], sizeof(char));
                     while (i < len && tokenizer[i] == CMD)
                     {
-                        ConcatChar(strCmd, tokenizer[i]);
+                        ConcatChar(strCmd, text[i]);
                         i++;
                     }
                     currentSubcmd->cmd = strCmd;
@@ -128,7 +128,7 @@ int Parse(char * text, Command * outcmd[])
                     break;
                 case ARG:
                 {
-                    char * arg = malloc(tokenCounter[i]);
+                    char * arg = calloc(tokenCounter[i], sizeof(char));
                     while (i < len && tokenizer[i] == ARG)
                     {
                         ConcatChar(arg, text[i]);
@@ -141,7 +141,7 @@ int Parse(char * text, Command * outcmd[])
                 case INREDIR:
                 {
                     i++;
-                    char * inR = malloc(tokenCounter[i]);
+                    char * inR = calloc(tokenCounter[i], sizeof(char));
                     while (i < len && tokenizer[i] == INREDIR)
                     {
                         ConcatChar(inR, text[i]);
@@ -154,7 +154,7 @@ int Parse(char * text, Command * outcmd[])
                 case OUTREDIR:
                 {
                     i++;
-                    char * outR = malloc(tokenCounter[i]);
+                    char * outR = calloc(tokenCounter[i], sizeof(char));
                     while (i < len && tokenizer[i] == OUTREDIR)
                     {
                         ConcatChar(outR, text[i]);
@@ -167,7 +167,7 @@ int Parse(char * text, Command * outcmd[])
                 case APPEND:
                 {
                     i+=2;
-                    char * appR = malloc(tokenCounter[i]);
+                    char * appR = calloc(tokenCounter[i], sizeof(char));
                     while (i < len && tokenizer[i] == APPEND)
                     {
                         ConcatChar(appR, text[i]);
@@ -187,6 +187,7 @@ int Parse(char * text, Command * outcmd[])
 
         if(i < len && tokenizer[i] == AMPERSAND)
         {
+            printf("Ampersand %c\n", text[i]);
             currentCmd->_background = 1;
             outcmd[currentCmdCount] = currentCmd;
             currentCmdCount++;
@@ -463,4 +464,5 @@ void ConcatChar(char * str1, char _char)
     char aux[] = " \0";
     aux[0] = _char;
     strcat(str1, aux);
+    printf("DEntro  de concat str1: %s char: %c\n", str1, _char);
 }

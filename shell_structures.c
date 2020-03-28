@@ -49,12 +49,13 @@ void PrintCMD(Command * cmd)
         printf("No hay comandos para ejeutar");
     }
     int count = cmd->subCommandCount;
-    
+
     for (int i = 0; i < count; i++)
     {
         subCommand aux = cmd->commands[i];
         char * _cmd = aux.cmd;
         printf("\nComand #%d:\n-cmd: %s\n", i, _cmd);
+
         printf("Argumentos:\n");
         if(aux.argsC == 0){ printf("NULL\n");}
         for (int j = 0; j < aux.argsC; j++)
@@ -62,6 +63,29 @@ void PrintCMD(Command * cmd)
             char * arg = aux.args[j];
             printf("Arg #%d: %s\n", j, arg);
         }
+
+        printf("Redirección de entrada:\n");
+        if(aux.inRcount == 0){ printf("NULL\n");}
+        for (int j = 0; j < aux.inRcount; j++)
+        {
+            printf("inR #%d: %s\n", j, aux.inR[j]);
+        }
+        
+
+        printf("Redirección de salida:\n");
+        if(aux.outRcount == 0){ printf("NULL\n");}
+        for (int j = 0; j < aux.outRcount; j++)
+        {
+            printf("outR #%d: %s\n", j, aux.outR[j]);
+        }
+
+        printf("Redirección de salida con append:\n");
+        if(aux.appRcount == 0){ printf("NULL\n");}
+        for (int j = 0; j < aux.appRcount; j++)
+        {
+            printf("appR #%d: %s\n", j, aux.appR[j]);
+        }
+
     }
     
 }
