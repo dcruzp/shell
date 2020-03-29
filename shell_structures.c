@@ -49,7 +49,11 @@ void PrintCMD(Command * cmd)
         printf("No hay comandos para ejeutar");
     }
     int count = cmd->subCommandCount;
-
+    
+    if(cmd->_background == 1)
+    {
+        printf("Background ON\n");
+    }
     for (int i = 0; i < count; i++)
     {
         subCommand aux = cmd->commands[i];

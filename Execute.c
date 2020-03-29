@@ -59,14 +59,26 @@ int Execute(Command * cmd)
             }
         }
 
+
+        if(fdin != GetInfd(&cmd->commands[i]))
+        {
+            close(fdin);
+        }
+
+        if(fdout != GetOutfd(&cmd->commands[i]))
+        {
+            close(fdout);
+        }
+
         if(i < cmd->subCommandCount - 1)
         {
             fdin = GetInfd(&cmd->commands[i+1]);
         }
-
+        
+        
         if(fdin == STDIN_FILENO)
         {
-            fdin = dup(fdpipe[0]);
+            fdin = fdpipe[0];
         }
         else
         {
@@ -75,8 +87,9 @@ int Execute(Command * cmd)
         
     }
 
-    if(!cmd->_background)
+    if(cmd->_background == 0)
     {
+        printf("Inside this guy\n");
         int waitResult = waitpid(cpid, &status, 0);
         if(waitResult < 0)
         {
@@ -153,6 +166,8 @@ int RunCMD(subCommand * scmd, int fdin, int fdout)
 
     execvp(scmd->cmd, scmd->args);
     perror("Problem execute a program");
+
+    printf("%s se pasó\n", scmd->cmd);
 
     return -1;
 }
