@@ -31,7 +31,7 @@ int Parse(char * text, Command * outcmd[])
 
     int len = strlen(text);
 
-    printf("%s\n", text);
+    printf("%s\nlen: %d\n", text, len);
 
     int * tokenizer = token_map(text);
 
@@ -190,9 +190,12 @@ int Parse(char * text, Command * outcmd[])
         {
             printf("Ampersand %c\n", text[i]);
             currentCmd->_background = 1;
-            outcmd[currentCmdCount] = currentCmd;
-            currentCmdCount++;
-            currentCmd = initCommand(comment);
+            if(i <len - 1)
+            {
+                outcmd[currentCmdCount] = currentCmd;
+                currentCmdCount++;
+                currentCmd = initCommand(comment);
+            }
         }
         
     }
@@ -266,7 +269,7 @@ char * removeOverSpace(char * line)
 char * removeSpaceAtBegining(char * line)
 {
     int len = strlen(line);
-    char * aux = malloc(len);
+    char * aux = calloc(len+1, sizeof(char));
     int j = 0;
     int i = 0;
     while (i < len && line[i] == ' ')
@@ -277,7 +280,6 @@ char * removeSpaceAtBegining(char * line)
     {
         aux[j] = line[i];
     }
-    
     return aux;
     
 }
@@ -285,7 +287,7 @@ char * removeSpaceAtBegining(char * line)
 char * removeSpaceAtEnd(char * line)
 {
     int len = strlen(line);
-    char * aux = malloc(len);
+    char * aux = calloc(len+1, sizeof(char));
     int j = 0;
     int i = len - 1;
     while (i > 0 && line[i] == ' ')
@@ -296,7 +298,6 @@ char * removeSpaceAtEnd(char * line)
     {
         aux[j] = line[i];
     }
-
     return aux;
     
 }
