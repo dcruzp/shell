@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/wait.h>
+#include "Execute.h"
 #include "shell_structures.h"
 #include "parser.h"
 #define max_args 13
@@ -80,7 +81,11 @@ int main(int argc, char const *argv[])
 		}*/
 		Command * cmd[128];
 		int cantCommands = Parse(comando, cmd);
-		PrintCMD(cmd[0]);
+		for (int i = 0; i < cantCommands; i++)
+		{
+			Execute(cmd[i]);
+		}
+		
 
 	} while (continuar);
 

@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <string.h>
 
 int Execute(Command * cmd)
 {
@@ -97,6 +98,11 @@ int Execute(Command * cmd)
             return -1;
         }
     }
+    else
+    {
+        printf("%d\n", cpid);
+    }
+    
     
     return 0;
 }
