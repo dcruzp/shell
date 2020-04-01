@@ -26,20 +26,23 @@
 int Parse(char * text, Command * outcmd[])
 {
     text = removeSpaceAtBegining(text);
+    if(text[0] == '#') return 0;
     text = removeSpaceAtEnd(text);
     text = removeOverSpace(text);
 
-    int len = strlen(text);
 
-    printf("%s\nlen: %d\n", text, len);
+    int len = strlen(text);
 
     int * tokenizer = token_map(text);
 
+
+    /*printf("%s\n", text);
     for (int i = 0; i < len; i++)
     {
         printf("%d", tokenizer[i]);
     }
     printf("\n");
+    */
 
 
 
@@ -88,7 +91,7 @@ int Parse(char * text, Command * outcmd[])
             if (tokenizer[i] == APPEND)
             {
                 i += 2;
-            }            
+            }
             while (j < len && tokenizer[j] == token)
             {
                 tokenCounter[i]++;
@@ -101,7 +104,6 @@ int Parse(char * text, Command * outcmd[])
         }
         
     }
-    
     
     int currentCmdCount = 0;
     Command * currentCmd;
@@ -143,10 +145,20 @@ int Parse(char * text, Command * outcmd[])
                 {
                     i++;
                     char * inR = calloc(tokenCounter[i], sizeof(char));
-                    while (i < len && tokenizer[i] == INREDIR)
+                    if(i < len && tokenizer[i] == QUOTES)
                     {
-                        ConcatChar(inR, text[i]);
-                        i++;
+                        free(inR);
+                        inR = calloc(tokenCounter[i], sizeof(char));
+                        inR = getQuotes(text, i, tokenCounter[i]);
+                        i+=tokenCounter[i];
+                    }
+                    else
+                    {
+                        while (i < len && tokenizer[i] == INREDIR)
+                        {
+                            ConcatChar(inR, text[i]);
+                            i++;
+                        }
                     }
                     insertInRedir(currentSubcmd, inR);
                 }
@@ -156,10 +168,20 @@ int Parse(char * text, Command * outcmd[])
                 {
                     i++;
                     char * outR = calloc(tokenCounter[i], sizeof(char));
-                    while (i < len && tokenizer[i] == OUTREDIR)
+                    if(i < len && tokenizer[i] == QUOTES)
                     {
-                        ConcatChar(outR, text[i]);
-                        i++;
+                        free(outR);
+                        outR = calloc(tokenCounter[i], sizeof(char));
+                        outR = getQuotes(text, i, tokenCounter[i]);
+                        i+=tokenCounter[i];
+                    }
+                    else
+                    {
+                        while (i < len && tokenizer[i] == OUTREDIR)
+                        {
+                            ConcatChar(outR, text[i]);
+                            i++;
+                        }
                     }
                     insertOutRedir(currentSubcmd, outR);
                 }
@@ -167,16 +189,36 @@ int Parse(char * text, Command * outcmd[])
 
                 case APPEND:
                 {
-                    i+=2;
+                    i+=2;                    
                     char * appR = calloc(tokenCounter[i], sizeof(char));
-                    while (i < len && tokenizer[i] == APPEND)
+
+                    if(i < len && tokenizer[i] == QUOTES)
                     {
-                        ConcatChar(appR, text[i]);
-                        i++;
+                        free(appR);
+                        appR = calloc(tokenCounter[i], sizeof(char));
+                        appR = getQuotes(text, i, tokenCounter[i]);
+                        i+=tokenCounter[i];
+                    }
+                    else
+                    {
+                        while (i < len && tokenizer[i] == APPEND)
+                        {
+                            ConcatChar(appR, text[i]);
+                            i++;
+                        }
                     }
                     insertAppendRedir(currentSubcmd, appR);
                 }
-                
+                break;
+
+                case QUOTES:
+                {
+                    char * arg = calloc(tokenCounter[i], sizeof(char));
+                    arg = getQuotes(text, i, tokenCounter[i]);
+                    i+=tokenCounter[i];
+                    insertArg(currentSubcmd, arg);
+                }
+                break;
                 default:
                     i++;
                     break;
@@ -203,6 +245,8 @@ int Parse(char * text, Command * outcmd[])
     currentCmdCount++;
     outcmd[currentCmdCount] = NULL;
 
+    free(tokenCounter);
+    free(tokenizer);
     return currentCmdCount;
 }
 
@@ -236,12 +280,13 @@ char * removeOverSpace(char * line)
     int i;
     int j = 0;
     char lastChar = '[';
+    int insideQutes = 0;
     for(i = 0; i < len ; i++)
     {
         if(line[i] == ' ')
         {
-            if(IsOperator(lastChar)){ continue;}
-            if(wasSpace)
+            if(IsOperator(lastChar) && !insideQutes){ continue;}
+            if(wasSpace && !insideQutes)
             {
                 continue;
             }
@@ -253,6 +298,7 @@ char * removeOverSpace(char * line)
         else
         {
             lastChar = line[i];
+            if(lastChar == '"'){ insideQutes = !insideQutes;}
             wasSpace = 0;
         }
 
@@ -318,7 +364,7 @@ int * token_map(char * text)
         else if(cmp == '<'){ tokenizer[i] = INREDIR;cmd = 0;}
         else if(cmp == '>'){ tokenizer[i] = OUTREDIR; cmd = 0;}
         else if(cmp == '#'){ tokenizer[i] = COMMENT; cmd = 0;}
-        else if(cmp == '\''){ tokenizer[i] = QUOTES; }
+        else if(cmp == '"'){ tokenizer[i] = QUOTES; }
         else { tokenizer[i] = FILL; cmd = 0;}
     }
     
@@ -416,6 +462,7 @@ int * token_map(char * text)
         }
         
     }
+
     
     return tokenizer;
 }
@@ -430,4 +477,15 @@ void ConcatChar(char * str1, char _char)
     char aux[] = " \0";
     aux[0] = _char;
     strcat(str1, aux);
+}
+
+char * getQuotes(char * buff, int index, int size)
+{
+    char * out = calloc(size, sizeof(char));
+    for (int i = index + 1; i < index + size - 1; i++)
+    {
+        ConcatChar(out, buff[i]);
+    }
+    
+    return out;
 }

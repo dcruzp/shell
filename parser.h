@@ -33,4 +33,7 @@ int IsOperator(char _char);
 //Concatena un caracter a un string.
 void ConcatChar(char * str1, char _char);
 
+
+char * getQuotes(char * buff, int index, int size);
+
 #endif
