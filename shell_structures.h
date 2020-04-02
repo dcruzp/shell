@@ -51,6 +51,9 @@ typedef struct Command{
     //Comentarios si hay alguno
     char * comment;
 
+    //texto del comando
+    char * cmdtext;
+
     //array de subcomandos
     subCommand * commands;
 
