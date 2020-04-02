@@ -108,6 +108,7 @@ int Parse(char * text, Command * outcmd[])
     int currentCmdCount = 0;
     Command * currentCmd;
     subCommand * currentSubcmd;
+    char * auxtext = calloc(len, sizeof(char));
     int i = 0;
     for (i = 0, currentCmd = initCommand(comment); i < len; i++)
     {
@@ -123,6 +124,7 @@ int Parse(char * text, Command * outcmd[])
                     while (i < len && tokenizer[i] == CMD)
                     {
                         ConcatChar(strCmd, text[i]);
+                        ConcatChar(auxtext, text[i]);
                         i++;
                     }
                     currentSubcmd->cmd = strCmd;
@@ -135,6 +137,7 @@ int Parse(char * text, Command * outcmd[])
                     while (i < len && tokenizer[i] == ARG)
                     {
                         ConcatChar(arg, text[i]);
+                        ConcatChar(auxtext, text[i]);
                         i++;
                     }
                     insertArg(currentSubcmd, arg);
@@ -143,6 +146,7 @@ int Parse(char * text, Command * outcmd[])
                 
                 case INREDIR:
                 {
+                    ConcatChar(auxtext, text[i]);
                     i++;
                     char * inR = calloc(tokenCounter[i], sizeof(char));
                     if(i < len && tokenizer[i] == QUOTES)
@@ -150,6 +154,9 @@ int Parse(char * text, Command * outcmd[])
                         free(inR);
                         inR = calloc(tokenCounter[i], sizeof(char));
                         inR = getQuotes(text, i, tokenCounter[i]);
+                        ConcatChar(auxtext, '"');
+                        strcat(auxtext, inR);
+                        ConcatChar(auxtext, '"');
                         i+=tokenCounter[i];
                     }
                     else
@@ -157,6 +164,7 @@ int Parse(char * text, Command * outcmd[])
                         while (i < len && tokenizer[i] == INREDIR)
                         {
                             ConcatChar(inR, text[i]);
+                            ConcatChar(auxtext, text[i]);
                             i++;
                         }
                     }
@@ -166,6 +174,7 @@ int Parse(char * text, Command * outcmd[])
 
                 case OUTREDIR:
                 {
+                    ConcatChar(auxtext, text[i]);
                     i++;
                     char * outR = calloc(tokenCounter[i], sizeof(char));
                     if(i < len && tokenizer[i] == QUOTES)
@@ -173,6 +182,9 @@ int Parse(char * text, Command * outcmd[])
                         free(outR);
                         outR = calloc(tokenCounter[i], sizeof(char));
                         outR = getQuotes(text, i, tokenCounter[i]);
+                        ConcatChar(auxtext, '"');
+                        strcat(auxtext, outR);
+                        ConcatChar(auxtext, '"');
                         i+=tokenCounter[i];
                     }
                     else
@@ -180,6 +192,7 @@ int Parse(char * text, Command * outcmd[])
                         while (i < len && tokenizer[i] == OUTREDIR)
                         {
                             ConcatChar(outR, text[i]);
+                            ConcatChar(auxtext, text[i]);
                             i++;
                         }
                     }
@@ -189,7 +202,8 @@ int Parse(char * text, Command * outcmd[])
 
                 case APPEND:
                 {
-                    i+=2;                    
+                    i+=2;
+                    strcat(auxtext, ">>");
                     char * appR = calloc(tokenCounter[i], sizeof(char));
 
                     if(i < len && tokenizer[i] == QUOTES)
@@ -197,6 +211,9 @@ int Parse(char * text, Command * outcmd[])
                         free(appR);
                         appR = calloc(tokenCounter[i], sizeof(char));
                         appR = getQuotes(text, i, tokenCounter[i]);
+                        ConcatChar(auxtext, '"');
+                        strcat(auxtext, appR);
+                        ConcatChar(auxtext, '"');
                         i+=tokenCounter[i];
                     }
                     else
@@ -204,6 +221,7 @@ int Parse(char * text, Command * outcmd[])
                         while (i < len && tokenizer[i] == APPEND)
                         {
                             ConcatChar(appR, text[i]);
+                            ConcatChar(auxtext, text[i]);
                             i++;
                         }
                     }
@@ -215,12 +233,18 @@ int Parse(char * text, Command * outcmd[])
                 {
                     char * arg = calloc(tokenCounter[i], sizeof(char));
                     arg = getQuotes(text, i, tokenCounter[i]);
+                    ConcatChar(auxtext, '"');
+                    strcat(auxtext, arg);
+                    ConcatChar(auxtext, '"');
                     i+=tokenCounter[i];
                     insertArg(currentSubcmd, arg);
                 }
                 break;
                 default:
+                {
+                    ConcatChar(auxtext, text[i]);
                     i++;
+                }
                     break;
                 }
             
@@ -230,17 +254,20 @@ int Parse(char * text, Command * outcmd[])
 
         if(i < len && tokenizer[i] == AMPERSAND)
         {
-            printf("Ampersand %c\n", text[i]);
             currentCmd->_background = 1;
+            currentCmd->cmdtext = auxtext;
             if(i <len - 1)
             {
                 outcmd[currentCmdCount] = currentCmd;
                 currentCmdCount++;
                 currentCmd = initCommand(comment);
+                auxtext = calloc(len, sizeof(char));
             }
         }
         
     }
+
+    currentCmd->cmdtext = auxtext;
     outcmd[currentCmdCount] = currentCmd;
     currentCmdCount++;
     outcmd[currentCmdCount] = NULL;
