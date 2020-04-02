@@ -17,10 +17,12 @@ int Execute(Command *cmd)
     pid_t cpid;
     ppid = getpid();
     sigintcount = 0;
+    //Install Signal Handlers
     signal(SIGINT, SIGINTHandler);
     signal(SIGCHLD, SIGCHLDHandler);
     signal(SIGTSTP, SIGTSTPHandler);
     
+    //Get first command input file descriptor
     fdin = GetInfd(&cmd->commands[0]);
     if (fdin < 0)
     {
@@ -29,13 +31,15 @@ int Execute(Command *cmd)
 
     for (int i = 0; i < cmd->subCommandCount; i++)
     {
-
+        //Get i-th command output file descriptor
         fdout = GetOutfd(&cmd->commands[i]);
         if (fdout < 0)
         {
             return -1;
         }
 
+        //this condition cheks if i is not last command
+        //and then sets the pipe for use it if needed
         if (i < cmd->subCommandCount - 1)
         {
             int pi = pipe(fdpipe);
@@ -54,14 +58,17 @@ int Execute(Command *cmd)
             }
         }
 
+        //here we check for Built-in commands to exec then
         if(strcmp(cmd->commands[i].cmd,"exit") == 0)
         {
             return 2;
         }
 
+        //in case of no built-in command then fork
         cpid = fork();
         if (cpid == 0)
         {
+            //set new processes signal handler
             signal(SIGINT, SIG_IGN);
             signal(SIGTSTP, SIG_DFL);
             rcmd = RunCMD(&cmd->commands[i], fdin, fdout);
@@ -71,6 +78,7 @@ int Execute(Command *cmd)
             }
         }
 
+        //restore input and output
         if (fdin != GetInfd(&cmd->commands[i]))
         {
             close(fdin);
@@ -81,11 +89,12 @@ int Execute(Command *cmd)
             close(fdout);
         }
 
+        //get next command input file descriptor
         if (i < cmd->subCommandCount - 1)
         {
             fdin = GetInfd(&cmd->commands[i + 1]);
         }
-
+        //set input to pipe in case of no redirection
         if (fdin == STDIN_FILENO)
         {
             fdin = fdpipe[0];
@@ -96,6 +105,8 @@ int Execute(Command *cmd)
         }
     }
 
+    //check if command run in the background
+    //and controls the process to wait for
     if (cmd->_background == 0)
     {
         wpid = cpid;
@@ -237,7 +248,7 @@ void SIGINTHandler(int in)
 {
         if(wpid < 0)
         { 
-            write(STDOUT_FILENO, "\nPrompt $ ", 11);
+            //write(STDOUT_FILENO, "\nPrompt $ ", 11);
             return;
         }
         if(sigintcount < 1)
@@ -257,7 +268,7 @@ void SIGTSTPHandler(int in)
 {
     if(wpid == -1)
     {
-        write(STDOUT_FILENO, "\nPrompt $ ", 11);
+        //write(STDOUT_FILENO, "\nPrompt $ ", 11);
     }
 }
 

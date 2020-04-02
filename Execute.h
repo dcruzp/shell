@@ -13,24 +13,37 @@
 
  #define BGSIZE 1000000
 
- //Process background[BGSIZE];
-enum state {Stopped, Running};
-//const char * States[] = {"Stopped", "Running"};
-
-
-int ppid;
-int sigintcount;
-int wpid;
-
 typedef struct Process
 {
-    pid_t ppid;
     pid_t pid;
-    char * state;
+    char  state;
+    char Command;
 }Process;
 
 
-int CreateProcess(pid_t pid, pid_t ppid, int state);
+Process * CreateProcess(int _pid, char * _state, char * _cmd)
+{
+    Process * out = (Process*)calloc(1, sizeof(Process));
+    out->Command = _cmd;
+    out->pid = _pid;
+    out->state = _state;
+
+    return out;
+}
+
+void DestructProcess(Process * proc)
+{
+    free(proc);
+}
+
+Process * background[BGSIZE];
+int bgCount = 0;
+enum state {Stopped, Running};
+const char * States[] = {"Stopped", "Running"};
+int ppid;
+int sigintcount = 0;
+int wpid = -1;
+
 
 //Ejecuta una linea de comandos
 int Execute(Command * cmd);
