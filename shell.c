@@ -81,6 +81,7 @@ int main(int argc, char const *argv[])
 		}*/
 		Command * cmd[128];
 		int cantCommands = Parse(comando, cmd);
+		printf("El comando: %s\n", comando);
 		for (int i = 0; i < cantCommands; i++)
 		{
 			Execute(cmd[i]);
