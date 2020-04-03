@@ -9,6 +9,14 @@
 #include <string.h>
 #include <signal.h>
 
+Process * background[BGSIZE];
+int bgCount = 0;
+enum state {Stopped, Running};
+const char * States[] = {"Stopped", "Running"};
+int ppid;
+int sigintcount = 0;
+int wpid = -1;
+
 int Contin = 0;
 int Execute(Command *cmd)
 {
@@ -122,6 +130,7 @@ int Execute(Command *cmd)
             }
             if(WIFSTOPPED(status))
             {
+                AddToBG(cmd->cmdtext, wpid, States[Stopped]);
                 break;
             }
         }
@@ -129,7 +138,7 @@ int Execute(Command *cmd)
     }
     else
     {
-        printf("[%d]\n", cpid);
+        AddToBG(cmd->cmdtext, cpid, States[Running]);
     }
 
     return 0;
@@ -207,15 +216,22 @@ int ExecuteBuitins(subCommand * scmd, int infd, int outfd)
 {
     if(strcmp(scmd->cmd, JOBS) == 0)
     {
-        //jobs execution here
-    }
-    else if (strcmp(scmd->cmd, BG) == 0)
-    {
-        /* code */
+        for (int i = 0; i < bgCount; i++)
+        {
+            if(background[i] != NULL)
+            {
+                /*Process * auxproc = background[i];
+                int len = ;
+                
+                char * aux = calloc()
+                write(outfd, )*/
+            }
+        }
+        
     }
     else if (strcmp(scmd->cmd, FG) == 0)
     {
-        /* code */
+        //if(scmd->)
     }
     else if (strcmp(scmd->cmd, CD) == 0)
     {
@@ -243,6 +259,19 @@ int ExecuteBuitins(subCommand * scmd, int infd, int outfd)
     }
 
 }
+
+int AddToBG(char * _cmd, int _pid, char * _state)
+{
+    if(bgCount >= BGSIZE)
+    {
+        return -1;
+    }
+    Process * proc = CreateProcess(_pid, _state, _cmd);
+    background[bgCount] = proc;    
+    bgCount++;
+    return 0;
+}
+
 
 void SIGINTHandler(int in)
 {

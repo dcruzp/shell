@@ -146,3 +146,18 @@ void insertAppendRedir(subCommand * scmd ,char * appendRedir)
     scmd->appRcount++;
     scmd->appR[scmd->appRcount] = NULL;
 }
+
+Process * CreateProcess(int _pid, char * _state, char * _cmd)
+{
+    Process * out = (Process*)calloc(1, sizeof(Process));
+    out->Command = _cmd;
+    out->pid = _pid;
+    out->state = _state;
+
+    return out;
+}
+
+void DestructProcess(Process * proc)
+{
+    free(proc);
+}

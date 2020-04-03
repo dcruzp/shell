@@ -114,8 +114,14 @@ int Parse(char * text, Command * outcmd[])
     {
         currentSubcmd = initSubCommand("");
 
-        while (i < len && tokenizer[i] != PIPE && tokenizer[i] != AMPERSAND)
+        while (i < len && tokenizer[i] != AMPERSAND)
         {
+            if(tokenizer[i] == PIPE)
+            {
+                ConcatChar(auxtext, text[i]);
+                break;
+            }
+
             switch (tokenizer[i])
                 {
                 case CMD:
@@ -255,6 +261,7 @@ int Parse(char * text, Command * outcmd[])
         if(i < len && tokenizer[i] == AMPERSAND)
         {
             currentCmd->_background = 1;
+            ConcatChar(auxtext, text[i]);
             currentCmd->cmdtext = auxtext;
             if(i <len - 1)
             {

@@ -59,6 +59,13 @@ typedef struct Command{
 
 }Command;
 
+typedef struct Process
+{
+    pid_t pid;
+    char * state;
+    char * Command;
+}Process;
+
 
 //inicializar la estructura Command.
 Command * initCommand(char * comment);
@@ -108,4 +115,9 @@ void insertOutRedir(subCommand * scmd ,char * outputRedir);
 //Agregar el path de un redirecionamiento de entrada tipo append a un subcomando
 void insertAppendRedir(subCommand * scmd ,char * appendRedir);
 
+//Inicializa la estructura Process
+Process * CreateProcess(int _pid, char * _state, char * _cmd);
+
+//Destructor de Process
+void DestructProcess(Process * proc);
 #endif
